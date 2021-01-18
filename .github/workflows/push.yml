@@ -29,3 +29,18 @@ jobs:
         env:
           IMAGE_NAME: $GITHUB_REPOSITORY
         run: docker push "${{ secrets.DOCKERHUB_USERNAME }}/conference-demo"
+
+#     Deploy image to Kubernetes
+      - name: deploy to cluster
+        uses: steebchen/kubectl@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        with:
+          args: set image --record deployment/mpact-backend-deployment mpact-backend=${{ secrets.DOCKERHUB_USERNAME }}/conference-demo:${{ github.sha }}
+      - name: verify deployment
+        uses: steebchen/kubectl@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          KUBECTL_VERSION: "1.15"
+        with:
+          args: '"rollout status deployment/mpact-backend-deployment"'
