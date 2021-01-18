@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mpact-backend-deployment
+spec:
+  selector:
+    matchLabels:
+      app: mpact-backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mpact-backend
+    spec:
+      containers:
+      - name: mpact-backend
+        image: danieldelgado/conference-demo:630f85c04ffbe6562e6286a1a4c6529f07bfd3a0
+        resources:
+          limits:
+            cpu: 750m
+            memory: 750Mi
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: database
+              key: url
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: database
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database
+              key: password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mpact-backend-service
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/do-loadbalancer-algorithm: "least_connections"
+spec:
+  type: LoadBalancer
+  # loadBalancerIP: 172.18.100.118
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: mpact-backend
