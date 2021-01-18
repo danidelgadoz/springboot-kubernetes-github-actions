@@ -1,0 +1,1 @@
+k create secret generic database --from-literal=url='' --from-literal=username='' --from-literal=password=''
